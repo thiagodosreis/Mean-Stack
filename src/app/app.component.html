@@ -3,10 +3,10 @@
   <!--1. the component @Output() postCreated event, when trigered by the button, will
       pass the "post" object to the main app as $event
       2. the main app will pass the $event to its own method onPostAdded as
-      parameter to store in the array storedPosts-->
-  <app-post-create (postCreated)="onPostAdded($event)"></app-post-create>
+      parameter to store in the array storedPosts (event binder)-->
+  <app-post-create></app-post-create>
   <!--3. here we are binding the storedPosts array to the component local @Input
-      variable "posts" to be displayed in the screen-->
-  <app-post-list [posts]="storedPosts"></app-post-list>
+      variable "posts" to be displayed in the screen (property binding)-->
+  <app-post-list></app-post-list>
 </main>
 

@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Post } from '../post.model';
 import { PostService } from '../post.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-post-list',
@@ -8,18 +9,24 @@ import { PostService } from '../post.service';
   styleUrls: ['./post-list.component.css']
 })
 
-export class PostListComponent implements OnInit{
-  // posts = [
-  //   { title: 'First post', content: 'this is the first post content'},
-  //   { title: 'Second post', content: 'this is the second post content'},
-  //   { title: 'Third post', content: 'this is the thirs post content'}
-  // ];
+export class PostListComponent implements OnInit, OnDestroy{
+  posts: Post[] = [];
+  private postSub: Subscription;
 
-  @Input() posts: Post[] = [];
-
-  // constructor(public postService: PostService){};
+  constructor(public postService: PostService){};
 
   ngOnInit(){
-    // this.posts = this.postService.getPosts();
+    this.posts = this.postService.getPosts();
+
+    //subscribe/listen to the Observable
+    this.postSub = this.postService.getPostUpdateListener()
+      .subscribe((posts: Post[])=>{
+        this.posts = posts;
+      });
+  }
+
+  ngOnDestroy(){
+    //remove the subcription and avoid memory leaks in the app.
+    this.postSub.unsubscribe();
   }
 }
