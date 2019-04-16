@@ -13,7 +13,7 @@ export class PostListComponent implements OnInit, OnDestroy{
   posts: Post[] = [];
   private postSub: Subscription;
 
-  constructor(public postService: PostService){};
+  constructor(public postService: PostService) { };
 
   ngOnInit(){
     // calls the http request from the method
@@ -21,13 +21,19 @@ export class PostListComponent implements OnInit, OnDestroy{
 
     // subscribe/listen to the Observable
     this.postSub = this.postService.getPostUpdateListener()
-      .subscribe((posts: Post[])=>{
+      .subscribe((posts: Post[]) => {
         this.posts = posts;
       });
+  }
+
+  onDelete(postId: string) {
+    this.postService.deletePost(postId);
   }
 
   ngOnDestroy(){
     // remove the subcription and avoid memory leaks in the app.
     this.postSub.unsubscribe();
   }
+
+
 }

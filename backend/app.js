@@ -1,10 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //middleware to parse the body of the incoming requests
+const mongoose = require('mongoose');
+
+const Post = require('./models/post'); //Post Model from Mongoose
 
 const app = express(); //instantiating express
 
+// connecting to Mongodb Atlas through Mongoose.
+mongoose.connect("mongodb+srv://mean_db:1KX6ElufqHLroKFc@meanstackcourse-icttz.mongodb.net/meandb?retryWrites=true")
+  .then(() => {
+    console.log('Connected to the DB!');
+  })
+  .catch(() => {
+    console.log('Connection failed!');
+  });
+
 app.use(bodyParser.json()); //parsing JSON incoming data
 app.use(bodyParser.urlencoded({ extended: false })); //parsing URL encoded data
+
 
 //CORS
 app.use((req, res, next)=>{
@@ -23,33 +36,49 @@ app.use((req, res, next)=>{
   next();
 });
 
-app.post('/api/posts', (req, res, next)=>{
-  const post = req.body;
-  console.log(post);
 
-  res.status(201).json({
-    message: 'Post added sucessfully',
-    post: post
-  })
+
+app.post('/api/posts', (req, res, next)=>{
+  const post = new Post({
+    title: req.body.title,
+    content: req.body.content
+  });
+
+  // Mongoose Save command will automatically write the data to the DB.
+  // Collection name will always be the plural form of your Model
+  post.save().then( result => {
+    res.status(201).json({
+      message: 'Post added sucessfully',
+      postId: result._id
+    });
+  });
+
 });
 
 app.get('/api/posts', (req, res, next) => {
-  const posts = [
-    {
-      id: "fad127463l",
-      title: "First server-side post",
-      content: "This is coming from the server"
-    },
-    {
-      id: "ksajdjf132",
-      title: "Second server-side post",
-      content: "This is coming from the server"
-    },
-  ];
-  res.status(200).json({
-    message: 'Posts fetched successfully!',
-    posts: posts
-  });
+
+  // To query data Mongoose provides us a static method
+  // you can use the callback function or chain .then and .catch
+  Post.find()
+    .then(documents => {
+      res.status(200).json({
+        message: 'Posts fetched successfully!',
+        posts: documents
+      });
+    });
+
+});
+
+app.delete('/api/posts/:id', (req, res, next) => {
+  const postId = req.params.id;
+
+  Post.deleteOne({ _id: postId })
+    .then( result => {
+      console.log(result);
+      res.status(200).json({ message: 'Post deleted!' });
+    });
+
+
 });
 
 module.exports = app;
