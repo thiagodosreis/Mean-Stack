@@ -87,13 +87,31 @@ router.put('/:id', multer({ storage: storage }).single('image'), (req, res, next
 
 router.get('', (req, res, next) => {
 
+  // getting pagination parameters
+  const pageSize = +req.query.pagesize; // + is to convert to number
+  const currentPage = +req.query.page; // + is to convert to number
+  const postQuery = Post.find();
+  let fetchedPosts;
+
+  // creating pagination on the DB
+  if (pageSize && currentPage) {
+    postQuery
+      .skip(pageSize * (currentPage - 1))
+      .limit(pageSize);
+  }
+
   // To query data Mongoose provides us a static method
   // you can use the callback function or chain .then and .catch
-  Post.find()
-    .then(documents => {
+  postQuery
+    .then(documents => { //get the total number of posts and store the documents to be used in the next chain
+      fetchedPosts = documents;
+      return Post.count();
+    })
+    .then(count => { // chain another function with the result of the previous in the count variable
       res.status(200).json({
         message: 'Posts fetched successfully!',
-        posts: documents
+        posts: fetchedPosts,
+        maxPosts: count
       });
     });
 

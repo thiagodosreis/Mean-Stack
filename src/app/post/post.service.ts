@@ -9,27 +9,30 @@ import { Router } from '@angular/router';
 export class PostService{
   private posts: Post[] = [];
   // Observable Event
-  private postsUpdated = new Subject<Post[]>();
+  private postsUpdated = new Subject< { posts: Post[], postCount: number } >();
 
   constructor(private http: HttpClient, private router: Router) {}
 
   // Pipe allows us to add in an operator. its changes data before the data is returned.
   // Map transforms every element from an array in a new element and store back in an array.
-  getPosts() {
-   this.http.get<{ message: string, posts: any }>('http://localhost:3000/api/posts')
+  getPosts(postsPerPage: number, currentPage: number) {
+   const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
+   this.http.get<{ message: string, posts: any, maxPosts: number }>('http://localhost:3000/api/posts' + queryParams)
     .pipe(map((postData) => {
-      return postData.posts.map( post => {
+      return { posts: postData.posts.map( post => {
         return {
           title: post.title,
           content: post.content,
           id: post._id,
           imagePath: post.imagePath
         };
-      });
+      }),
+      maxPosts: postData.maxPosts
+      };
     }))
-    .subscribe((transformedPosts) => {
-      this.posts = transformedPosts;
-      this.postsUpdated.next([...this.posts]);
+    .subscribe((transformedPostsData) => {
+      this.posts = transformedPostsData.posts;
+      this.postsUpdated.next({ posts: [...this.posts], postCount: transformedPostsData.maxPosts } );
     });
   }
 
@@ -56,21 +59,6 @@ export class PostService{
 
     this.http.post<{ message: string, post: Post }>('http://localhost:3000/api/posts', postData)
       .subscribe((responseData) => {
-        console.log(responseData);
-        const post: Post = {
-          id: responseData.post.id,
-          title,
-          content,
-          imagePath: responseData.post.imagePath
-        };
-
-        // updating the id of the Post.
-        // const id = responseData.postId;
-        // post.id = id;
-
-        this.posts.push(post);
-        this.postsUpdated.next([...this.posts]); // Emitting a copy of Posts to the event "postsUpdated"
-
         this.router.navigate(['/']);
       });
   }
@@ -91,29 +79,11 @@ export class PostService{
 
     this.http.put('http://localhost:3000/api/posts/' + id, postData)
       .subscribe( response => {
-        const updatedPosts = [...this.posts];
-        const oldPostIndex = updatedPosts.findIndex(p => p.id === id );
-        const post: Post = { id, title, content, imagePath: "" };
-
-        updatedPosts[oldPostIndex] = post;
-        this.posts = updatedPosts;        this.postsUpdated.next([...this.posts]);
-
         this.router.navigate(['/']);
       });
   }
 
   deletePost(postId: string) {
-    this.http.delete('http://localhost:3000/api/posts/' + postId)
-      .subscribe(() => {
-
-        // removing the deleted id from the posts objs
-        // filter allows us to only return a subset of the array that is returned true.
-        const updatedPosts = this.posts.filter(post => {
-            return post.id !== postId;
-        });
-
-        this.posts = updatedPosts;
-        this.postsUpdated.next([...this.posts]); // now all the app knows about it.
-      });
+    return this.http.delete('http://localhost:3000/api/posts/' + postId);
   }
 }
