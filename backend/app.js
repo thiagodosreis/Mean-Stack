@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //middleware to parse the body of the incoming requests
 const mongoose = require('mongoose');
+const path = require('path'); //construct paths - from express
 
 const postsRoutes = require('./routes/posts')
 
@@ -18,6 +19,8 @@ mongoose.connect("mongodb+srv://mean_db:1KX6ElufqHLroKFc@meanstackcourse-icttz.m
 app.use(bodyParser.json()); //parsing JSON incoming data
 app.use(bodyParser.urlencoded({ extended: false })); //parsing URL encoded data
 
+// Add middleware to Images folder Static Accessable
+app.use('/images', express.static(path.join('backend/images'))); // also redirect the requests to /backend/images
 
 //CORS
 app.use((req, res, next)=>{

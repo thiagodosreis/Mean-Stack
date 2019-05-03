@@ -22,7 +22,8 @@ export class PostService{
         return {
           title: post.title,
           content: post.content,
-          id: post._id
+          id: post._id,
+          imagePath: post.imagePath
         };
       });
     }))
@@ -43,19 +44,29 @@ export class PostService{
     // "..." means: return an actual new object and not a reference to the original object (bc copy of objs in JS is just a reference).
     // return {...this.posts.find(p => p.id === id)};
 
-    return this.http.get<{_id: string, title: string, content: string}>('http://localhost:3000/api/posts/' + id);
+    return this.http.get<{_id: string, title: string, content: string, imagePath: string}>('http://localhost:3000/api/posts/' + id);
   }
 
-  addPost(title: string, content: string) {
-    const post: Post = {id: null, title, content};
+  addPost(title: string, content: string, image: File) {
+    // const post: Post = {id: null, title, content}; //replacing JSON by FormData to send Images too
+    const postData = new FormData();
+    postData.append('title', title);
+    postData.append('content', content);
+    postData.append('image', image, title);
 
-    this.http.post<{ message: string, postId: string }>('http://localhost:3000/api/posts', post)
+    this.http.post<{ message: string, post: Post }>('http://localhost:3000/api/posts', postData)
       .subscribe((responseData) => {
         console.log(responseData);
+        const post: Post = {
+          id: responseData.post.id,
+          title,
+          content,
+          imagePath: responseData.post.imagePath
+        };
 
         // updating the id of the Post.
-        const id = responseData.postId;
-        post.id = id;
+        // const id = responseData.postId;
+        // post.id = id;
 
         this.posts.push(post);
         this.postsUpdated.next([...this.posts]); // Emitting a copy of Posts to the event "postsUpdated"
@@ -64,15 +75,28 @@ export class PostService{
       });
   }
 
-  updatePost(id: string, title: string, content: string) {
-    const post: Post = {id, title, content};
-    this.http.put('http://localhost:3000/api/posts/' + id, post)
+  updatePost(id: string, title: string, content: string, image: File | string) {
+    let postData: Post | FormData;
+
+    if (typeof(image) === 'object') { // File object to upload
+       postData = new FormData();
+       postData.append('id', id);
+       postData.append('title', title);
+       postData.append('content', content);
+       postData.append('image', image, title);
+
+    } else { // string with the url of the image
+      postData = { id, title, content, imagePath: image };
+    }
+
+    this.http.put('http://localhost:3000/api/posts/' + id, postData)
       .subscribe( response => {
         const updatedPosts = [...this.posts];
-        const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id );
+        const oldPostIndex = updatedPosts.findIndex(p => p.id === id );
+        const post: Post = { id, title, content, imagePath: "" };
+
         updatedPosts[oldPostIndex] = post;
-        this.posts = updatedPosts;
-        this.postsUpdated.next([...this.posts]);
+        this.posts = updatedPosts;        this.postsUpdated.next([...this.posts]);
 
         this.router.navigate(['/']);
       });
