@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 
 const Post = require('../models/post'); //Post Model from Mongoose
+const checkAuth = require('../middleware/check-auth'); // custom middleware to validate Token
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ const storage = multer.diskStorage({
 
 
 // added a middleware before the callback function to treat the image property posted to upload.
-router.post('', multer({storage: storage}).single('image'), (req, res, next)=>{
+router.post('', checkAuth, multer({storage: storage}).single('image'), (req, res, next)=>{
   const urlfile = req.protocol + '://' + req.get('host');
 
   const post = new Post({
@@ -59,7 +60,7 @@ router.post('', multer({storage: storage}).single('image'), (req, res, next)=>{
 
 });
 
-router.put('/:id', multer({ storage: storage }).single('image'), (req, res, next) => {
+router.put('/:id', checkAuth, multer({ storage: storage }).single('image'), (req, res, next) => {
 
   let imagePath = req.body.imagePath;
 
@@ -127,7 +128,7 @@ router.get('/:id', (req, res, next) => {
   })
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', checkAuth, (req, res, next) => {
   const postId = req.params.id;
 
   Post.deleteOne({ _id: postId })

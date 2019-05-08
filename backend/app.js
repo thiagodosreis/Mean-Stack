@@ -3,12 +3,17 @@ const bodyParser = require('body-parser'); //middleware to parse the body of the
 const mongoose = require('mongoose');
 const path = require('path'); //construct paths - from express
 
-const postsRoutes = require('./routes/posts')
+const postsRoutes = require('./routes/posts');
+const usersRoutes = require('./routes/user');
 
 const app = express(); //instantiating express
 
 // connecting to Mongodb Atlas through Mongoose.
-mongoose.connect("mongodb+srv://mean_db:1KX6ElufqHLroKFc@meanstackcourse-icttz.mongodb.net/meandb?retryWrites=true")
+mongoose
+  .connect(
+    "mongodb+srv://mean_db:1KX6ElufqHLroKFc@meanstackcourse-icttz.mongodb.net/meandb", //removed ?retryWrites=true
+    { useNewUrlParser: true }
+  )
   .then(() => {
     console.log('Connected to the DB!');
   })
@@ -29,7 +34,7 @@ app.use((req, res, next)=>{
   //domains using this headers can access. Block if there any other not listed
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     );
   //Which http verbs are allowed. OPTIONS is sent by default by the browser
   res.setHeader(
@@ -41,5 +46,6 @@ app.use((req, res, next)=>{
 
 
 app.use("/api/posts", postsRoutes);
+app.use("/api/user", usersRoutes);
 
 module.exports = app;

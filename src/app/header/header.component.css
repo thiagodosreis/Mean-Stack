@@ -9,6 +9,10 @@ ul{
   padding: 0;
 }
 
+ul {
+  display: flex;
+}
+
 .spacer{
   flex: 1 1 auto;
 }
