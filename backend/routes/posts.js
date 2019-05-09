@@ -39,7 +39,8 @@ router.post('', checkAuth, multer({storage: storage}).single('image'), (req, res
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    imagePath: urlfile + '/images/' + req.file.filename //storing the image url in the DB
+    imagePath: urlfile + '/images/' + req.file.filename, //storing the image url in the DB
+    creator: req.userData.userId
   });
 
   console.log("post:"+JSON.stringify(post));
@@ -69,21 +70,24 @@ router.put('/:id', checkAuth, multer({ storage: storage }).single('image'), (req
     imagePath = urlfile + '/images/' + req.file.filename;
   }
 
-
   const post = new Post({
     _id: req.body.id,
     title: req.body.title,
     content: req.body.content,
-    imagePath: imagePath
+    imagePath: imagePath,
+    creator: req.userData.userId
   });
 
   console.log(post);
 
-  Post.updateOne( { _id: req.params.id }, post )
+  Post.updateOne( { _id: req.params.id, creator: req.userData.userId }, post )
     .then( result => {
-      res.status(200).json({ message: "Updated successfully", post: post });
+      if (result.nModified > 0) {
+        res.status(200).json({ message: "Updated successfully", post: post });
+      } else {
+        res.status(401).json({ message: "Not authorized!" }); // 401 User not authorized
+      }
     });
-
 })
 
 router.get('', (req, res, next) => {
@@ -131,13 +135,14 @@ router.get('/:id', (req, res, next) => {
 router.delete('/:id', checkAuth, (req, res, next) => {
   const postId = req.params.id;
 
-  Post.deleteOne({ _id: postId })
+  Post.deleteOne({ _id: postId, creator: req.userData.userId  })
     .then( result => {
-      console.log(result);
-      res.status(200).json({ message: 'Post deleted!' });
+      if (result.n > 0) {
+        res.status(200).json({ message: 'Post deleted!' });
+      } else {
+        res.status(401).json({ message: 'Not Authorized!' });
+      }
     });
-
-
 });
 
 module.exports = router;

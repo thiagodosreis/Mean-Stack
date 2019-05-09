@@ -57,7 +57,7 @@ router.post('/login', (req, res, next) => {
       // the payload is send back to the browser to be stored
       // secret is to encry and decrypt later by the server
       const token = jwt.sign(
-        {email: fetchedUser.email, userId: fetchedUser._id},
+        {email: fetchedUser.email, userId: fetchedUser._id}, // data that should be fetched later on future server requests
         'asdhkYSJHASs87s7jhgsa768JHGajhg&62j!==',
         { expiresIn: '1h' }
       );
@@ -65,7 +65,8 @@ router.post('/login', (req, res, next) => {
       res.status(200).json({
         message: 'Success Auth.',
         token: token,
-        expiresIn: 3600
+        expiresIn: 3600,
+        userId: fetchedUser._id
       });
     })
     .catch(err => { // db error
