@@ -27,7 +27,7 @@ module.exports = (req, res, next) => {
 
   } catch (error) { //if fails to split the token, there was no token, or wrong format
     res.status(401).json({
-      message: 'Auth failed. No token sent.'
+      message: 'You are not authenticated!'
     });
   }
 }

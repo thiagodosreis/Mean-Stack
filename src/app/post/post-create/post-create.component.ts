@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Post } from './../post.model';
 import { PostService } from '../post.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { mimeType } from './mime-type.validator';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-post-create',
@@ -11,7 +13,7 @@ import { mimeType } from './mime-type.validator';
   styleUrls: ['./post-create.component.css']
 })
 
-export class PostCreateComponent implements OnInit {
+export class PostCreateComponent implements OnInit, OnDestroy {
   enteredTitle = '';
   enteredContent = '';
   private mode = 'create';
@@ -19,14 +21,20 @@ export class PostCreateComponent implements OnInit {
   public post: Post;
   isLoading = false;
   imagePreview: string;
+  private authStatusSub: Subscription;
 
   // reactive forms
   form: FormGroup;
 
-  constructor(public postService: PostService, public route: ActivatedRoute) {}
+  constructor(public postService: PostService, public route: ActivatedRoute, private authService: AuthService) {}
 
   // determing if we are in edit mode or create mode
   ngOnInit() {
+    this.authStatusSub = this.authService.getAuthStatusListener()
+      .subscribe(authStatus => {
+        this.isLoading = false;
+      });
+
     this.form = new FormGroup({
       title: new FormControl(null, {validators: [Validators.required, Validators.minLength(3)]}),
       content: new FormControl(null, {validators: [Validators.required]}),
@@ -102,5 +110,9 @@ export class PostCreateComponent implements OnInit {
 
     // cleaning up the forms after added.
     this.form.reset();
+  }
+
+  ngOnDestroy() {
+    this.authStatusSub.unsubscribe();
   }
 }
