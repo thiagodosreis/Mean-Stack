@@ -6,5 +6,6 @@ import { MAT_DIALOG_DATA } from '@angular/material';
 })
 export class ErrorComponent {
 
+  // this is an way Angular Material Pass data on to the Dialog Component
   constructor(@Inject(MAT_DIALOG_DATA) public data: {message: string}) {}
 }
