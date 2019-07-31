@@ -63,7 +63,7 @@ exports.userLogin = (req, res, next) => {
       // secret is to encry and decrypt later by the server
       const token = jwt.sign(
         {email: fetchedUser.email, userId: fetchedUser._id}, // data that should be fetched later on future server requests
-        'asdhkYSJHASs87s7jhgsa768JHGajhg&62j!==',
+        process.env.JWT_KEY,
         { expiresIn: '1h' }
       );
 

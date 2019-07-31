@@ -11,7 +11,7 @@ const app = express(); //instantiating express
 // connecting to Mongodb Atlas through Mongoose.
 mongoose
   .connect(
-    "mongodb+srv://mean_db:1KX6ElufqHLroKFc@meanstackcourse-icttz.mongodb.net/meandb", //removed ?retryWrites=true
+    "mongodb+srv://mean_db:" + process.env.MONGO_ATLAS_PW + "@meanstackcourse-icttz.mongodb.net/meandb", //removed ?retryWrites=true
     { useNewUrlParser: true }
   )
   .then(() => {
